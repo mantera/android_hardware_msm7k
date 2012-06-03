@@ -556,8 +556,10 @@ AudioHardware::AudioHardware() :
             index = DEVICE_HEADSET_TX;
         else if (strcmp((char*)name[i], "fmradio_handset_rx") == 0)
             index = DEVICE_FMRADIO_HANDSET_RX;
-        else if ((strcmp((char*)name[i], "speaker_mono_rx") == 0) ||
-                 (strcmp((char*)name[i], "speaker_stereo_rx") == 0) ||
+        else if ((strcmp((char*)name[i], "speaker_stereo_rx") == 0) ||
+#ifndef WITH_STEREO_HW_SPEAKER
+                 (strcmp((char*)name[i], "speaker_mono_rx") == 0) ||
+#endif
                  (strcmp((char*)name[i], "speaker_stereo_audio_rx") == 0))
             index = DEVICE_SPEAKER_RX;
         else if (strcmp((char*)name[i], "fmradio_speaker_rx") == 0)
@@ -840,7 +842,10 @@ status_t AudioHardware::setMode(int mode) {
     if (status == NO_ERROR) {
         /* make sure that doAudioRouteOrMute() is called by doRouting()
            even if the new device selected is the same as current one. */
-        clearCurDevice();
+        if (((prevMode != AudioSystem::MODE_IN_CALL) && (mMode == AudioSystem::MODE_IN_CALL)) ||
+            ((prevMode == AudioSystem::MODE_IN_CALL) && (mMode != AudioSystem::MODE_IN_CALL))) {
+            clearCurDevice();
+        }
     }
     return status;
 }
